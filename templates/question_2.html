@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question 2</title>
+</head>
+<body>
+    <h1>Question 2: Total Votes in an LGA</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="lga_name">Enter LGA Name:</label>
+        <input type="text" name="lga_name" id="lga_name" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if party_scores and lga_name %}
+        <h2>Total Votes for {{ lga_name }}:</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Party Abbreviation</th>
+                    <th>Total Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in party_scores %}
+                    <tr>
+                        <td>{{ score.party_abbreviation }}</td>
+                        <td>{{ score.total_score }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h2>No results found for the specified LGA.</h2>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question 1</title>
+</head>
+<body>
+    <h1>Question 1: Votes per Party in Polling Unit</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="polling_unit_id">Enter Polling Unit ID:</label>
+        <input type="text" name="polling_unit_id" id="polling_unit_id" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% if results %}
+        <h2>Results</h2>
+        <ul>
+            {% for result in results %}
+                <li>{{ result.party_abbreviation }}: {{ result.party_score }} votes</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>

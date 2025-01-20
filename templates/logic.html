@@ -1,0 +1,22 @@
+{% extends 'index.html' %}
+
+{% block title %}Questions{% endblock %}
+
+{% block content %}
+    <h2>Questions and Results</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="question">Select a Question:</label>
+        <select name="question" id="question">
+            <option value="1">Question 1: Total Result for Each Party in a PU</option>
+            <option value="2">Question 2: Total Result for All PU in an LGA</option>
+            <option value="3">Question 3: Add New Result for a PU</option>
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div>
+        <h3>Result:</h3>
+        <p>{{ result }}</p>
+    </div>
+{% endblock %}
