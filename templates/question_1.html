@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Question 1</title>
+    <style>
+        table {
+            width: 50%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Question 1: Votes per Party in Polling Unit</h1>
@@ -16,11 +33,22 @@
 
     {% if results %}
         <h2>Results</h2>
-        <ul>
-            {% for result in results %}
-                <li>{{ result.party_abbreviation }}: {{ result.party_score }} votes</li>
-            {% endfor %}
-        </ul>
+        <table>
+            <thead>
+                <tr>
+                    <th>Party Abbreviation</th>
+                    <th>Party Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                    <tr>
+                        <td>{{ result.party_abbreviation }}</td>
+                        <td>{{ result.party_score }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 </body>
 </html>

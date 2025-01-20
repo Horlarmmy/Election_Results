@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.db.models import Sum
 from .models import AnnouncedPuResults, AnnouncedLgaResults, PollingUnit, Lga
+from django.utils.timezone import now
 
 def index(request):
     return render(request, "index.html")
@@ -16,39 +17,73 @@ def question_1(request):
 
 def question_2(request):
     party_scores = {}
-    if request.method == "POST":
-        lga_name = request.POST.get("lga_name")
-        
-        # Get the LGA ID from the LGA name
-        lga_id = Lga.objects.filter(lga_name=lga_name).values_list("lga_id", flat=True).first()
-        
-        #pass to the polling unit to get the unique id
-        # for each polling unnit unique id, get each party score and sum it up
-        # then return a total score for each party
-        polling_units = list(PollingUnit.objects.filter(lga_id=lga_id).values_list("uniqueid", flat=True))
-        print(polling_units)
+    lgas = Lga.objects.all()  # Fetch all LGAs to populate the dropdown
+    lga_name = ""
 
+    if request.method == "POST":
+        lga_id = request.POST.get("lga_id")  # Get the selected LGA ID
+        #use id to get the name of the LGA
+        lga_name = Lga.objects.filter(lga_id=lga_id).values_list("lga_name", flat=True).first()
+        
+        # Get unique IDs of polling units in the selected LGA
+        polling_units = list(PollingUnit.objects.filter(lga_id=lga_id).values_list("uniqueid", flat=True))
+        
+        # Sum the party scores for all polling units in the LGA
         party_scores = AnnouncedPuResults.objects.filter(polling_unit_uniqueid__in=polling_units).values(
             "party_abbreviation"
         ).annotate(total_score=Sum("party_score"))
         
-        # Ensure all rows are being considered
-        party_scores = list(party_scores)
-        print(party_scores)
-        
-    return render(request, "question_2.html", {"party_scores": party_scores, "lga_name": lga_name})
+    return render(request, "question_2.html", {"party_scores": party_scores, "lgas": lgas, "lga_name": lga_name})
+
 
 def question_3(request):
-    results = []
+    message = ""
     if request.method == "POST":
         lga_name = request.POST.get("lga_name")
-        polling_units = PollingUnit.objects.filter(lga__lga_name=lga_name)
-        for unit in polling_units:
-            unit_results = AnnouncedPuResults.objects.filter(polling_unit_uniqueid=unit.uniqueid).values(
-                "party_abbreviation", "party_score"
+        polling_unit_id = request.POST.get("polling_unit_id")
+        ward_id = request.POST.get("ward_id")
+        party_results = [
+            {
+                "party_abbreviation": request.POST.get(f"party_{i}_abbreviation"),
+                "party_score": request.POST.get(f"party_{i}_score"),
+            }
+            for i in range(1, 10)
+        ]
+
+        # Get the LGA ID from the LGA name
+        lga_id = Lga.objects.filter(lga_name=lga_name).values_list("lga_id", flat=True).first()
+
+        if not lga_id:
+            message = f"LGA '{lga_name}' not found."
+        else:
+            # Create a new PollingUnit if it doesn't exist
+            polling_unit, created = PollingUnit.objects.get_or_create(
+                polling_unit_id=polling_unit_id,
+                lga_id=lga_id,
+                ward_id=ward_id,
+                defaults={
+                    "polling_unit_name": f"Polling Unit {polling_unit_id}",
+                    "entered_by_user": "admin",
+                    "date_entered": now(),
+                    "user_ip_address": request.META.get("REMOTE_ADDR"),
+                },
             )
-            results.append({"polling_unit": unit.polling_unit_name, "results": list(unit_results)})
-    return render(request, "question_3.html", {"results": results})
+
+            # Add results for each party
+            for result in party_results:
+                if result["party_abbreviation"] and result["party_score"]:
+                    AnnouncedPuResults.objects.create(
+                        polling_unit_uniqueid=polling_unit.uniqueid,
+                        party_abbreviation=result["party_abbreviation"],
+                        party_score=int(result["party_score"]),
+                        entered_by_user="admin",
+                        date_entered=now(),
+                        user_ip_address=request.META.get("REMOTE_ADDR"),
+                    )
+            message = f"Results successfully added for Polling Unit ID {polling_unit_id}."
+
+    return render(request, "question_3.html", {"message": message, "party_range": range(1, 10)})
+
 
 
 def handle_questions(request):

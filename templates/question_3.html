@@ -6,28 +6,35 @@
     <title>Question 3</title>
 </head>
 <body>
-    <h1>Question 3: Results in an LGA</h1>
+    <h1>Question 3: Add New Polling Unit Results</h1>
     <form method="post">
         {% csrf_token %}
         <label for="lga_name">Enter LGA Name:</label>
-        <input type="text" name="lga_name" id="lga_name" required>
+        <input type="text" name="lga_name" id="lga_name" required><br><br>
+
+        <label for="polling_unit_id">Enter Polling Unit ID:</label>
+        <input type="text" name="polling_unit_id" id="polling_unit_id" required><br><br>
+
+        <label for="ward_id">Enter Ward ID:</label>
+        <input type="text" name="ward_id" id="ward_id" required><br><br>
+
+        <h2>Enter Results for each Parties</h2>
+        {% for i in party_range %}
+            <fieldset>
+                <legend>Party {{ i }}</legend>
+                <label for="party_{{ i }}_abbreviation">Party Abbreviation:</label>
+                <input type="text" name="party_{{ i }}_abbreviation" id="party_{{ i }}_abbreviation"><br>
+
+                <label for="party_{{ i }}_score">Party Score:</label>
+                <input type="number" name="party_{{ i }}_score" id="party_{{ i }}_score"><br>
+            </fieldset>
+        {% endfor %}
+
         <button type="submit">Submit</button>
     </form>
 
-    {% if results %}
-        <h2>Results</h2>
-        <ul>
-            {% for unit in results %}
-                <li>
-                    <strong>{{ unit.polling_unit }}</strong>
-                    <ul>
-                        {% for res in unit.results %}
-                            <li>{{ res.party_abbreviation }}: {{ res.party_score }} votes</li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
+    {% if message %}
+        <p><strong>{{ message }}</strong></p>
     {% endif %}
 </body>
 </html>
